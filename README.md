@@ -1,2 +1,4 @@
 # ECU33143
-Final Project + any other code I do within my Big Data for Economics Module
+This is a project I'm taking as part of my Big Data in Economics Module.
+
+Research question is primarily surrounding Cryptocurrency pricing in comparison to macroeconomic indicators.
