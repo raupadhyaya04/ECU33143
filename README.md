@@ -26,3 +26,11 @@ Data is collected programmatically from public APIs:
 To reproduce results:
 1. Obtain a [FRED API key](https://fred.stlouisfed.org/docs/api/api_key.html).
 2. Run the data collection scripts to generate `.csv` datasets locally.
+
+---
+
+## 🚫 Data Policy
+Data files (`.csv`) are **excluded from version control** for reproducibility, data size, and ethical redistribution reasons.  
+All data can be re-created by running the scripts provided.
+
+---
