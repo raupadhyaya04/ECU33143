@@ -3,6 +3,9 @@ import pandas as pd
 import statsmodels.api as sm
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.stats.outliers_influence import variance_inflation_factor
+import seaborn as sns
+import matplotlib.pyplot as plt
+import os
 
 # Data Loading and combining (for analysis)
 df_fred = pd.read_csv("./Macro Data/macro_fred_data_filled.csv", index_col=0, parse_dates=True)
@@ -188,6 +191,116 @@ for name, dfc in coins.items():
     print("\n[VIF]")
     print(vif_tbl.to_string(index=False))
     all_results[name] = {'model': model, 'vif': vif_tbl, 'X': X_used, 'y': y_used}
+
+
+# ---------- Automated summary table ----------
+
+def summarize_models(results_dict, sig_threshold=0.05):
+    rows = []
+    for coin, content in results_dict.items():
+        model = content['model']
+        params = model.params
+        tvals = model.tvalues
+        pvals = model.pvalues
+        for var in params.index:
+            if var.lower() == 'const':
+                continue
+            rows.append({
+                'Crypto': coin,
+                'Variable': var,
+                'Coef': params[var],
+                't-Stat': tvals[var],
+                'p-Value': pvals[var],
+                'Significant': '✅' if pvals[var] < sig_threshold else '❌'
+            })
+    df_summary = pd.DataFrame(rows)
+    df_summary = df_summary.sort_values(['Variable','Crypto']).reset_index(drop=True)
+    return df_summary
+
+summary_table = summarize_models(all_results)
+pd.set_option('display.max_rows', None)
+print(summary_table)
+
+# Optional: save to CSV
+summary_table.to_csv("./Results/macro_crypto_regression_summary.csv", index=False)
+print("\n✅ Summary table saved to ./Results/macro_crypto_regression_summary.csv")
+
+
+# ---------- Granger Causality Tests ----------
+
+from statsmodels.tsa.stattools import grangercausalitytests
+
+print("\n\n================== RUNNING GRANGER CAUSALITY TESTS ==================\n")
+
+macro_candidates = ['^GSPC', '^VIX', 'M2 Money Supply', 'DX-Y.NYB']
+max_lag = 3
+granger_results = []
+
+for name, dfc in coins.items():
+    print(f"\nTesting Granger causality for {name}...")
+    # Merge macro + crypto price
+    df = pd.merge(
+        df_macro[macro_candidates],
+        dfc[['close']].rename(columns={'close': f'{name}_close'}),
+        left_index=True, right_index=True, how='inner'
+    ).sort_index()
+
+    # Compute log returns
+    df = df.apply(lambda x: np.log(x).diff())
+    df = df.dropna()
+
+    for macro_var in macro_candidates:
+        try:
+            test_res = grangercausalitytests(df[[f'{name}_close', macro_var]], maxlag=max_lag, verbose=False)
+            # Extract smallest p-value across lags
+            p_vals = [test_res[i+1][0]['ssr_chi2test'][1] for i in range(max_lag)]
+            min_p = min(p_vals)
+            granger_results.append({
+                'Crypto': name,
+                'Macro Variable': macro_var,
+                'Min p-Value': round(min_p, 4),
+                'Significant': '✅' if min_p < 0.05 else '❌'
+            })
+        except Exception as e:
+            print(f"Skipped {name}-{macro_var} due to error: {e}")
+            continue
+
+df_granger = pd.DataFrame(granger_results)
+df_granger.sort_values(['Macro Variable','Crypto'], inplace=True)
+
+print("\n================== GRANGER SUMMARY TABLE ==================\n")
+print(df_granger)
+
+# Save results
+os.makedirs("./Results", exist_ok=True)
+df_granger.to_csv("./Results/granger_causality_results.csv", index=False)
+print("\n✅ Granger causality results saved to ./Results/granger_causality_results.csv")
+
+
+# ---------- Granger Causality Visualization ----------
+
+# Load Granger results (if needed)
+df_granger = pd.read_csv("./Results/granger_causality_results.csv")
+
+# Pivot for heatmap
+heatmap_data = df_granger.pivot(index="Crypto", columns="Macro Variable", values="Min p-Value")
+
+plt.figure(figsize=(8,5))
+sns.heatmap(
+    heatmap_data, annot=True, fmt=".3f",
+    cmap="RdYlGn_r", cbar_kws={'label': 'p-value'},
+    linewidths=0.5, linecolor='gray'
+)
+plt.title("Granger Causality: Macro Variables → Crypto Returns", fontsize=14)
+plt.ylabel("Cryptocurrency")
+plt.xlabel("Macro Variable")
+plt.tight_layout()
+
+os.makedirs("./Results/Heatmaps", exist_ok=True)
+plt.savefig("./Results/Heatmaps/granger_heatmap.png", dpi=300)
+plt.close()
+print("\n✅ Granger causality heatmap saved to ./Results/Heatmaps/granger_heatmap.png")
+
 
 # ---------- Impulse Response Visualization (VAR-based) ----------
 
