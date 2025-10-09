@@ -1,5 +1,3 @@
-# Need to fill the blanks in the crypto and macro data
-
 import pandas as pd
 
 macro_df = pd.read_csv("./Macro Data/macro_fred_data.csv", index_col=0, parse_dates=True)
