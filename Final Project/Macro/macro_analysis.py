@@ -8,21 +8,21 @@ import matplotlib.pyplot as plt
 import os
 
 # Data Loading and combining (for analysis)
-df_fred = pd.read_csv("./Macro Data/macro_fred_data_filled.csv", index_col=0, parse_dates=True)
-df_yahoo = pd.read_csv("./Macro Data/macro_yahoo_data_filled.csv", index_col=0, parse_dates=True)
+df_fred = pd.read_csv("../Data/Macro Data/macro_fred_data_filled.csv", index_col=0, parse_dates=True)
+df_yahoo = pd.read_csv("../Data/Macro Data/macro_yahoo_data_filled.csv", index_col=0, parse_dates=True)
 df_macro = pd.concat([df_fred, df_yahoo], axis=1)
 df_macro = df_macro.ffill().bfill()
 
-df_ADA = pd.read_csv("./Crypto Data/ADAUSDT.csv", index_col=0, parse_dates=True)
-df_AVA = pd.read_csv("./Crypto Data/AVAXUSDT.csv", index_col=0, parse_dates=True)
-df_BNB = pd.read_csv("./Crypto Data/BNBUSDT.csv", index_col=0, parse_dates=True)
-df_BTC = pd.read_csv("./Crypto Data/BTCUSDT.csv", index_col=0, parse_dates=True)
-df_DOGE = pd.read_csv("./Crypto Data/DOGEUSDT.csv", index_col=0, parse_dates=True)
-df_DOT = pd.read_csv("./Crypto Data/DOTUSDT.csv", index_col=0, parse_dates=True)
-df_ETH = pd.read_csv("./Crypto Data/ETHUSDT.csv", index_col=0, parse_dates=True)
-df_LINK = pd.read_csv("./Crypto Data/LINKUSDT.csv", index_col=0, parse_dates=True)
-df_SOL = pd.read_csv("./Crypto Data/SOLUSDT.csv", index_col=0, parse_dates=True)
-df_XRP = pd.read_csv("./Crypto Data/XRPUSDT.csv", index_col=0, parse_dates=True)
+df_ADA = pd.read_csv("../Data/Crypto Data/ADAUSDT.csv", index_col=0, parse_dates=True)
+df_AVA = pd.read_csv("../Data/Crypto Data/AVAXUSDT.csv", index_col=0, parse_dates=True)
+df_BNB = pd.read_csv("../Data/Crypto Data/BNBUSDT.csv", index_col=0, parse_dates=True)
+df_BTC = pd.read_csv("../Data/Crypto Data/BTCUSDT.csv", index_col=0, parse_dates=True)
+df_DOGE = pd.read_csv("../Data/Crypto Data/DOGEUSDT.csv", index_col=0, parse_dates=True)
+df_DOT = pd.read_csv("../Data/Crypto Data/DOTUSDT.csv", index_col=0, parse_dates=True)
+df_ETH = pd.read_csv("../Data/Crypto Data/ETHUSDT.csv", index_col=0, parse_dates=True)
+df_LINK = pd.read_csv("../Data/Crypto Data/LINKUSDT.csv", index_col=0, parse_dates=True)
+df_SOL = pd.read_csv("../Data/Crypto Data/SOLUSDT.csv", index_col=0, parse_dates=True)
+df_XRP = pd.read_csv("../Data/Crypto Data/XRPUSDT.csv", index_col=0, parse_dates=True)
 
 # ---------- Helpers ----------
 
@@ -232,7 +232,12 @@ from statsmodels.tsa.stattools import grangercausalitytests
 
 print("\n\n================== RUNNING GRANGER CAUSALITY TESTS ==================\n")
 
-macro_candidates = ['^GSPC', '^VIX', 'M2 Money Supply', 'DX-Y.NYB']
+macro_candidates = [
+    'Fed Funds Rate', '10-Year Treasury Yield',
+    'Consumer Price Index', 'M2 Money Supply',
+    'Crude Oil Price', 'GC=F', 'DX-Y.NYB',
+    '^GSPC', '^VIX'
+]
 max_lag = 3
 granger_results = []
 
@@ -279,26 +284,57 @@ print("\n✅ Granger causality results saved to ./Results/granger_causality_resu
 
 # ---------- Granger Causality Visualization ----------
 
-# Load Granger results (if needed)
+# Load Granger results
 df_granger = pd.read_csv("./Results/granger_causality_results.csv")
 
 # Pivot for heatmap
 heatmap_data = df_granger.pivot(index="Crypto", columns="Macro Variable", values="Min p-Value")
 
-plt.figure(figsize=(8,5))
+# Optional: Rename macro variables for cleaner display
+label_map = {
+    "10-Year Treasury Yield": "10Y Yield",
+    "Consumer Price Index": "CPI",
+    "Crude Oil Price": "Oil",
+    "DX-Y.NYB": "USD Index",
+    "Fed Funds Rate": "Fed Rate",
+    "GC=F": "Gold",
+    "M2 Money Supply": "M2",
+    "^GSPC": "S&P 500",
+    "^VIX": "VIX"
+}
+heatmap_data = heatmap_data.rename(columns=label_map)
+
+# Sort cryptos alphabetically or by sensitivity (optional)
+# heatmap_data = heatmap_data.loc[(heatmap_data < 0.05).sum(axis=1).sort_values(ascending=False).index]
+
+# Create heatmap
+plt.figure(figsize=(11, 7))
 sns.heatmap(
-    heatmap_data, annot=True, fmt=".3f",
-    cmap="RdYlGn_r", cbar_kws={'label': 'p-value'},
-    linewidths=0.5, linecolor='gray'
+    heatmap_data,
+    annot=True, fmt=".3f",
+    cmap="RdYlGn_r",
+    cbar_kws={'label': 'p-value'},
+    linewidths=0.5, linecolor='gray',
+    annot_kws={"size": 8}
 )
-plt.title("Granger Causality: Macro Variables → Crypto Returns", fontsize=14)
-plt.ylabel("Cryptocurrency")
-plt.xlabel("Macro Variable")
+
+# Titles and labels
+plt.title("Granger Causality: Macro Variables → Crypto Returns", fontsize=14, weight='bold', pad=12)
+plt.xlabel("Macro Variable", fontsize=12, labelpad=10)
+plt.ylabel("Cryptocurrency", fontsize=12, labelpad=10)
+
+# Rotate tick labels for clarity
+plt.xticks(rotation=45, ha='right', fontsize=10)
+plt.yticks(rotation=0, fontsize=11)
+
+# Improve layout
 plt.tight_layout()
 
+# Save output
 os.makedirs("./Results/Heatmaps", exist_ok=True)
-plt.savefig("./Results/Heatmaps/granger_heatmap.png", dpi=300)
+plt.savefig("./Results/Heatmaps/granger_heatmap.png", dpi=300, bbox_inches='tight')
 plt.close()
+
 print("\n✅ Granger causality heatmap saved to ./Results/Heatmaps/granger_heatmap.png")
 
 
