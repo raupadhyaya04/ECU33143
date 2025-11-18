@@ -66,28 +66,6 @@ Data is collected programmatically from multiple public APIs:
 
 ---
 
-## 📁 Project Structure
-
-ECU33143-Big-Data-Economics/
-├── Data/
-│ ├── Crypto Data/ # OHLCV for 10 cryptocurrencies
-│ ├── Macro Data/ # FRED + Yahoo Finance indicators
-│ └── Sentiment Data/ # Reddit sentiment + VaR results
-├── scripts/
-│ ├── collect_crypto_data.py
-│ ├── collect_macro_data.py
-│ ├── collect_reddit_sentiment.py
-│ ├── macro_analysis.py # VAR + IRF + Granger for macro
-│ └── sentiment_analysis.py # VaR + Granger for sentiment
-├── Results/
-│ ├── Heatmaps/ # Granger causality visualizations
-│ ├── IRF/ # Impulse response functions
-│ └── analysis/ # VaR backtests + summary stats
-├── 23375852_Research_Report_ECU33143.pdf # Final report
-└── README.md
-
----
-
 ## 🔬 Key Technical Components
 
 ### Macro Analysis
