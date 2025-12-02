@@ -18,7 +18,7 @@ start = datetime.datetime(2016, 1, 1)
 end = datetime.datetime.now()
 
 # Initialize FRED
-fred = Fred(API_KEY)
+fred = Fred("544f69d836c088040217d1e54cba4c68")
 
 # Define the macro series
 fred_series = {
