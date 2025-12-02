@@ -1,6 +1,6 @@
 # ECU33143 – Big Data in Economics Research Project
 
-This repository contains my completed research project for the **Big Data in Economics** module, investigating the pricing dynamics of cryptocurrencies through both macroeconomic fundamentals and social media sentiment analysis.
+This repository contains my completed research project for **ECU33143: Introduction to Big Data in Economics**, investigating the pricing dynamics of cryptocurrencies through both macroeconomic fundamentals and social media sentiment analysis.
 
 ---
 
@@ -58,11 +58,13 @@ Data is collected programmatically from multiple public APIs:
    - export FRED_API_KEY="your_key_here"
    - export REDDIT_CLIENT_ID="your_id_here"
    - export REDDIT_CLIENT_SECRET="your_secret_here"
+
 3. Run data collection scripts in order:
-   - Final Project/Data/Data Collection and Cleaning/crypto_data_collection.py
-   - Final Project/Data/Data Collection and Cleaning/macro_data_collection.py
-   - Final Project/Data/Data Collection and Cleaning/data_cleaning.py
-   - Final Project/Data/Data Collection and Cleaning/reddit_sentiment_data_collection.py
+   - cd "Final Project"
+   - ./Data/Data Collection and Cleaning/crypto_data_collection.py
+   - ./Data/Data Collection and Cleaning/macro_data_collection.py
+   - ./Data/Data Collection and Cleaning/data_cleaning.py
+   - ./Data/Data Collection and Cleaning/reddit_sentiment_data_collection.py
 
 ---
 
@@ -108,10 +110,7 @@ To obtain data: Run collection scripts with your own API credentials.
 
 ## 📚 Dependencies
 
-pip install pandas numpy matplotlib seaborn
-pip install statsmodels scipy
-pip install python-binance fredapi yfinance praw
-pip install vaderSentiment
+pip install -r requirements.txt
 
 ---
 
@@ -119,12 +118,11 @@ pip install vaderSentiment
 
 **Course**: ECU33143 – Introduction to Big Data in Economics  
 **Institution**: Trinity College Dublin
-**Completion**: November 2025  
-**Timeline**: 7 weeks (initially completed 2 weeks ahead of deadline)
+**Completion**: December 2025
 
 ---
 
-## 🔮 Future Extensions (Dissertation)
+## 🔮 Potential Future Extensions:
 
 Planned extensions for dissertation research:
 - Multi-platform sentiment integration
